@@ -36,9 +36,10 @@ DigitalOut myled(LED1);
 DigitalOut myled2(LED2);
 
 int Count = 0;
-int ThresholdCount = 30;
+int ThresholdCount = 10;
 
 int off = 1;
+int off2 = 1;
 
 double val = 0;
 int idR[32] = {0};
@@ -249,7 +250,7 @@ void angle_select() {
       }
     }
 
-    if (c==1) {
+    if (c == 1 && off2) {
       //printf("hello");
       queue.call(&publish_message, rpcclient);
       return;
@@ -268,6 +269,7 @@ void messageArrived(MQTT::MessageData& md) {
     printf(payload);
     ++arrivedcount;
     if (c == 1) {
+      off2 = 0; 
       printf("Confirm angle");
       c = 0;
     }
@@ -419,6 +421,7 @@ void tilt(Arguments *in, Reply *out) {
 void gestureUI(Arguments *in, Reply *out) {
    //const char *tmp = in->getArg<const char*>();
    myled = 1;
+   off2 = 1;
    printf("GESTURE MODE");
    c = 0;
    mqtt_queue.call(angle_select);
