@@ -35,14 +35,19 @@ uLCD_4DGL uLCD(D1, D0, D2);
 DigitalOut myled(LED1);
 DigitalOut myled2(LED2);
 
+int Count = 0;
+int ThresholdCount = 30;
 
+int off = 1;
+
+double val = 0;
 int idR[32] = {0};
 int indexR = 0;
 //int gesture_index;
-int c=0;
+int c=0, angle = 0;
 constexpr int kTensorArenaSize = 60 * 1024;
 uint8_t tensor_arena[kTensorArenaSize];
-
+MQTT::Client<MQTTNetwork, Countdown> *rpcclient;
 volatile int message_num = 0;
 volatile int arrivedcount = 0;
 volatile bool closed = false;
@@ -54,14 +59,17 @@ EventQueue mqtt_queue;
 
 
 void Confirm_print() {
+  uLCD.cls();
    printf("\nConfirm ! %d\n", c);
    uLCD.printf("\nConfirm! ! !\n");
+   uLCD.printf("\nThreshole angle = %d\n",angle );
    myled = 0;
 }
 
 void Confirm_angle() {
    c=1;
-   queue.call(&Confirm_print);
+   //printf("c = %d", c);
+   mqtt_queue.call(&Confirm_print);
 }
 
 int PredictGesture(float* output) {
@@ -107,6 +115,22 @@ int PredictGesture(float* output) {
 I2C i2c_lcd(D14,D15); // SDA, SCL
 
 TextLCD_I2C lcd(&i2c_lcd, 0x4E, TextLCD::LCD16x2);  // I2C bus, PCF8574 Slaveaddress, LCD Type
+
+void publish_message(MQTT::Client<MQTTNetwork, Countdown>* client) {
+    message_num++;
+    MQTT::Message message;
+    char buff[100];
+    sprintf(buff, "QoS0 Hello, Python! #%d", message_num);
+    message.qos = MQTT::QOS0;
+    message.retained = false;
+    message.dup = false;
+    message.payload = (void*) buff;
+    message.payloadlen = strlen(buff) + 1;
+    int rc = client->publish(topic, message);
+
+    printf("rc:  %d\r\n", rc);
+    printf("Puslish message: %s\r\n", buff);
+}
 
 void angle_select() {
    // Whether we should clear the buffer next time we fetch data
@@ -204,27 +228,31 @@ void angle_select() {
     // Clear the buffer next time we read data
     should_clear_buffer = gesture_index < label_num;
 
+    sw0.rise(&Confirm_angle);
     // Produce an output
     if (gesture_index < label_num) {
       error_reporter->Report(config.output_message[gesture_index]);
       if (gesture_index == 0) {
         uLCD.cls();
         uLCD.printf("\nThreshold angle = 30\n");
+        angle = 30;
       }
       else if (gesture_index == 1) {
         uLCD.cls();
         uLCD.printf("\nThreshold angle = 35\n");
+        angle = 35;
       }
       else if (gesture_index == 2) {
         uLCD.cls();
         uLCD.printf("\nThreshold angle = 40\n");
+        angle = 40;
       }
     }
-    sw0.rise(&Confirm_angle);
+
     if (c==1) {
-       printf("Confirm angle");
-       c = 0;
-       return;
+      //printf("hello");
+      queue.call(&publish_message, rpcclient);
+      return;
     }
   }
 }
@@ -239,28 +267,101 @@ void messageArrived(MQTT::MessageData& md) {
     sprintf(payload, "Payload %.*s\r\n", message.payloadlen, (char*)message.payload);
     printf(payload);
     ++arrivedcount;
-}
-
-void publish_message(MQTT::Client<MQTTNetwork, Countdown>* client) {
-    message_num++;
-    MQTT::Message message;
-    char buff[100];
-    sprintf(buff, "QoS0 Hello, Python! #%d", message_num);
-    message.qos = MQTT::QOS0;
-    message.retained = false;
-    message.dup = false;
-    message.payload = (void*) buff;
-    message.payloadlen = strlen(buff) + 1;
-    int rc = client->publish(topic, message);
-
-    printf("rc:  %d\r\n", rc);
-    printf("Puslish message: %s\r\n", buff);
+    if (c == 1) {
+      printf("Confirm angle");
+      c = 0;
+    }
+    if (Count > ThresholdCount) {
+      Count = 0;
+      off = 0;
+    }
 }
 
 void close_mqtt() {
     closed = true;
 }
 
+void mqtt() {
+  wifi = WiFiInterface::get_default_instance();
+    if (!wifi) {
+            printf("ERROR: No WiFiInterface found.\r\n");
+            return;
+    }
+
+
+    printf("\nConnecting to %s...\r\n", MBED_CONF_APP_WIFI_SSID);
+    int ret = wifi->connect(MBED_CONF_APP_WIFI_SSID, MBED_CONF_APP_WIFI_PASSWORD, NSAPI_SECURITY_WPA_WPA2);
+    if (ret != 0) {
+            printf("\nConnection error: %d\r\n", ret);
+            return;
+    }
+
+
+    NetworkInterface* net = wifi;
+    MQTTNetwork mqttNetwork(net);
+    MQTT::Client<MQTTNetwork, Countdown> client(mqttNetwork);
+    rpcclient = &client;
+
+    //TODO: revise host to your IP
+    const char* host = "172.20.10.3";
+    printf("Connecting to TCP network...\r\n");
+
+    SocketAddress sockAddr;
+    sockAddr.set_ip_address(host);
+    sockAddr.set_port(1883);
+
+    printf("address is %s/%d\r\n", (sockAddr.get_ip_address() ? sockAddr.get_ip_address() : "None"),  (sockAddr.get_port() ? sockAddr.get_port() : 0) ); //check setting
+
+    int rc = mqttNetwork.connect(sockAddr);//(host, 1883);
+    if (rc != 0) {
+            printf("Connection error.");
+            return;
+    }
+    printf("Successfully connected!\r\n");
+
+    MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
+    data.MQTTVersion = 3;
+    data.clientID.cstring = "Mbed";
+
+    if ((rc = client.connect(data)) != 0){
+            printf("Fail to connect MQTT\r\n");
+    }
+    if (client.subscribe(topic, MQTT::QOS0, messageArrived) != 0){
+            printf("Fail to subscribe\r\n");
+    }
+
+    mqtt_thread.start(callback(&mqtt_queue, &EventQueue::dispatch_forever));
+    
+    //sw0.rise(mqtt_queue.event(&Confirm_angle));
+    //sw0.rise(mqtt_queue.event(&publish_message, &client));
+    //btn3.rise(&close_mqtt);
+
+    int num = 0;
+    while (num != 5) {
+            client.yield(100);
+            ++num;
+    }
+
+    while (1) {
+            if (closed) break;
+            client.yield(500);
+            ThisThread::sleep_for(500ms);
+    }
+
+    printf("Ready to close MQTT Network......\n");
+
+    if ((rc = client.unsubscribe(topic)) != 0) {
+            printf("Failed: rc from unsubscribe was %d\n", rc);
+    }
+    if ((rc = client.disconnect()) != 0) {
+    printf("Failed: rc from disconnect was %d\n", rc);
+    }
+
+    mqttNetwork.disconnect();
+    printf("Successfully closed!\n");
+
+    return;
+}
 
 int main() {
    lcd.setCursor(TextLCD::CurOff_BlkOn);
@@ -269,6 +370,7 @@ int main() {
    FILE *devin = fdopen(&pc, "r");
    FILE *devout = fdopen(&pc, "w");
    t.start(callback(&queue, &EventQueue::dispatch_forever));
+   queue.call(mqtt);
    while(1) {
       memset(buf, 0, 256);
       for (int i = 0; ; i++) {
@@ -286,22 +388,32 @@ int main() {
 }
 
 void record(void) {
-  double val;
+   //double val;
    BSP_ACCELERO_AccGetXYZ(PDataXYZ);
    val = PDataXYZ[0]*rDataXYZ[0] + PDataXYZ[1]*rDataXYZ[1] + PDataXYZ[2]*rDataXYZ[2];
    val = val / sqrt(PDataXYZ[0]*PDataXYZ[0] + PDataXYZ[1]*PDataXYZ[1] + PDataXYZ[2]*PDataXYZ[2]);
    val = val / sqrt(rDataXYZ[0]*rDataXYZ[0] + rDataXYZ[1]*rDataXYZ[1] + rDataXYZ[2]*rDataXYZ[2]);
    val = acos(val);
    val = val/ M_PI * 180;
-   printf("angle = %g  %d, %d, %d\n", val, PDataXYZ[0], PDataXYZ[1], PDataXYZ[2]);
+   uLCD.cls();
+   uLCD.printf("angle = %g  %d, %d, %d\n", val, PDataXYZ[0], PDataXYZ[1], PDataXYZ[2]);
+   if (val > angle) {
+    printf("angle = %g  %d, %d, %d\n", val, PDataXYZ[0], PDataXYZ[1], PDataXYZ[2]);
+    mqtt_queue.call(&publish_message, rpcclient);
+    Count = Count + 1;
+   }
 }
 
 void tilt(Arguments *in, Reply *out) {
   printf("Tilt mode");
   myled2 = 1;
+  off = 1;
   BSP_ACCELERO_AccGetXYZ(rDataXYZ);
-  idR[indexR++] = queue.call_every(100ms, record);
-  indexR = indexR % 32;
+  while (off) {
+    idR[indexR++] = mqtt_queue.call(record);
+    indexR = indexR % 32;
+    ThisThread::sleep_for(100ms);
+  }
 }
 
 void gestureUI(Arguments *in, Reply *out) {
@@ -309,7 +421,7 @@ void gestureUI(Arguments *in, Reply *out) {
    myled = 1;
    printf("GESTURE MODE");
    c = 0;
-   queue.call(angle_select);
+   mqtt_queue.call(angle_select);
    //for(int i = 0; tmp[i] != 0; i++) {
      // lcd.putc(tmp[i]);
    //}

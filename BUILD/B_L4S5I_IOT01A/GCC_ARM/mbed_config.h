@@ -56,6 +56,8 @@
 #define LPTICKER_DELAY_TICKS                                                    0                                                                                                // set by target:MCU_STM32L4
 #define MBED_CONF_ALT1250_PPP_BAUDRATE                                          115200                                                                                           // set by library:ALT1250_PPP
 #define MBED_CONF_ALT1250_PPP_PROVIDE_DEFAULT                                   0                                                                                                // set by library:ALT1250_PPP
+#define MBED_CONF_APP_WIFI_PASSWORD                                             "666666669"                                                                                      // set by application
+#define MBED_CONF_APP_WIFI_SSID                                                 "BOEDY"                                                                                          // set by application
 #define MBED_CONF_ATMEL_RF_ASSUME_SPACED_SPI                                    1                                                                                                // set by library:atmel-rf[STM]
 #define MBED_CONF_ATMEL_RF_FULL_SPI_SPEED                                       7500000                                                                                          // set by library:atmel-rf
 #define MBED_CONF_ATMEL_RF_FULL_SPI_SPEED_BYTE_SPACING                          250                                                                                              // set by library:atmel-rf
@@ -170,7 +172,7 @@
 #define MBED_CONF_GEMALTO_CINTERION_PROVIDE_DEFAULT                             0                                                                                                // set by library:GEMALTO_CINTERION
 #define MBED_CONF_GENERIC_AT3GPP_BAUDRATE                                       115200                                                                                           // set by library:GENERIC_AT3GPP
 #define MBED_CONF_GENERIC_AT3GPP_PROVIDE_DEFAULT                                0                                                                                                // set by library:GENERIC_AT3GPP
-#define MBED_CONF_ISM43362_PROVIDE_DEFAULT                                      1                                                                                                // set by library:ism43362[B_L4S5I_IOT01A]
+#define MBED_CONF_ISM43362_PROVIDE_DEFAULT                                      1                                                                                                // set by application[B_L4S5I_IOT01A]
 #define MBED_CONF_ISM43362_READ_THREAD_STACK_STATICALLY_ALLOCATED               0                                                                                                // set by library:ism43362
 #define MBED_CONF_ISM43362_WIFI_DATAREADY                                       PE_1                                                                                             // set by library:ism43362[B_L4S5I_IOT01A]
 #define MBED_CONF_ISM43362_WIFI_DEBUG                                           0                                                                                                // set by library:ism43362
@@ -427,6 +429,7 @@
 #define MBED_CONF_TARGET_LSE_AVAILABLE                                          1                                                                                                // set by target:MCU_STM32
 #define MBED_CONF_TARGET_LSE_DRIVE_LOAD_LEVEL                                   RCC_LSEDRIVE_LOW                                                                                 // set by target:MCU_STM32L4
 #define MBED_CONF_TARGET_MPU_ROM_END                                            0x0fffffff                                                                                       // set by target:Target
+#define MBED_CONF_TARGET_NETWORK_DEFAULT_INTERFACE_TYPE                         WIFI                                                                                             // set by application[B_L4S5I_IOT01A]
 #define MBED_CONF_TARGET_TICKLESS_FROM_US_TICKER                                0                                                                                                // set by target:Target
 #define MBED_CONF_TARGET_XIP_ENABLE                                             0                                                                                                // set by target:Target
 #define MBED_CONF_TELIT_HE910_BAUDRATE                                          115200                                                                                           // set by library:TELIT_HE910

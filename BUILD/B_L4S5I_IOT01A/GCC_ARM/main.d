@@ -325,6 +325,17 @@ BUILD/B_L4S5I_IOT01A/GCC_ARM/main.o: main.cpp \
  4dgl-ulcd-se/uLCD_4DGL.h \
  /home/ee2405/ee2405new/mbed-os-build2/mbed-os/platform/include/platform/Stream.h \
  /home/ee2405/ee2405new/mbed-os-build2/mbed-os/platform/include/platform/FileLike.h \
+ wifi_mqtt/MQTTNetwork.h \
+ /home/ee2405/ee2405new/mbed-os-build2/mbed-os/connectivity/netsocket/include/netsocket/NetworkInterface.h \
+ wifi_mqtt/MQTT/MQTTmbed.h wifi_mqtt/MQTT/MQTTClient.h \
+ wifi_mqtt/MQTT/FP/FP.h wifi_mqtt/MQTT/MQTTPacket/MQTTPacket.h \
+ wifi_mqtt/MQTT/MQTTPacket/MQTTConnect.h \
+ wifi_mqtt/MQTT/MQTTPacket/MQTTPublish.h \
+ wifi_mqtt/MQTT/MQTTPacket/MQTTSubscribe.h \
+ wifi_mqtt/MQTT/MQTTPacket/MQTTUnsubscribe.h \
+ wifi_mqtt/MQTT/MQTTPacket/MQTTFormat.h \
+ wifi_mqtt/MQTT/MQTTPacket/StackTrace.h \
+ wifi_mqtt/MQTT/MQTTPacket/MQTTPacket.h wifi_mqtt/MQTT/MQTTLogging.h \
  textlcd/TextLCD.h textlcd/TextLCD_Config.h textlcd/TextLCD_UDC.h \
  mbed_rpc/mbed_rpc/mbed_rpc.h mbed_rpc/mbed_rpc/rpc.h \
  mbed_rpc/mbed_rpc/Arguments.h \
