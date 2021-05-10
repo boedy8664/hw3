@@ -13,7 +13,7 @@
     {
         "module": "BUILD/B_L4S5I_IOT01A",
         "size": {
-            ".text": 37912,
+            ".text": 37956,
             ".data": 321,
             ".bss": 67319,
             ".text-delta": 0,
@@ -24,7 +24,7 @@
     {
         "module": "[fill]",
         "size": {
-            ".text": 306,
+            ".text": 262,
             ".data": 17,
             ".bss": 47,
             ".text-delta": 0,

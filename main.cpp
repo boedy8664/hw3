@@ -58,6 +58,11 @@ const char* topic = "Mbed";
 Thread mqtt_thread(osPriorityHigh);
 EventQueue mqtt_queue;
 
+void led() {
+  while (off2) {
+    myled=!myled;
+  }
+}
 
 void Confirm_print() {
   uLCD.cls();
@@ -250,9 +255,9 @@ void angle_select() {
       }
     }
 
-    if (c == 1 && off2) {
+    if (c == 1) {
       //printf("hello");
-      queue.call(&publish_message, rpcclient);
+      mqtt_queue.call(&publish_message, rpcclient);
       return;
     }
   }
@@ -272,6 +277,7 @@ void messageArrived(MQTT::MessageData& md) {
       off2 = 0; 
       printf("Confirm angle");
       c = 0;
+      queue.call(led);
     }
     if (Count > ThresholdCount) {
       Count = 0;
