@@ -34,6 +34,7 @@ int16_t rDataXYZ[3] = {0};
 uLCD_4DGL uLCD(D1, D0, D2);
 DigitalOut myled(LED1);
 DigitalOut myled2(LED2);
+DigitalOut myled3(LED3);
 
 int Count = 0;
 int ThresholdCount = 10;
@@ -61,6 +62,7 @@ EventQueue mqtt_queue;
 void led() {
   while (off2) {
     myled=!myled;
+    ThisThread::sleep_for(500ms);
   }
 }
 
@@ -68,7 +70,7 @@ void Confirm_print() {
   uLCD.cls();
    printf("\nConfirm ! %d\n", c);
    uLCD.printf("\nConfirm! ! !\n");
-   uLCD.printf("\nThreshole angle = %d\n",angle );
+   uLCD.printf("\nFinal Threshold angle = %d\n",angle );
    myled = 0;
 }
 
@@ -412,11 +414,25 @@ void record(void) {
    }
 }
 
+void initialize() {
+  BSP_ACCELERO_AccGetXYZ(rDataXYZ);
+  printf("%d, %d, %d\n", rDataXYZ[0], rDataXYZ[1], rDataXYZ[2]);
+}
+
 void tilt(Arguments *in, Reply *out) {
   printf("Tilt mode");
   myled2 = 1;
+  myled3 = 0;
   off = 1;
-  BSP_ACCELERO_AccGetXYZ(rDataXYZ);
+  c = 0;
+  sw0.rise(&Confirm_angle);
+  while (c == 0) {
+    myled3 = !myled3;
+    idR[indexR++] = mqtt_queue.call(initialize);
+    indexR = indexR % 32;
+    ThisThread::sleep_for(100ms);
+  }
+  myled3 = 0;
   while (off) {
     idR[indexR++] = mqtt_queue.call(record);
     indexR = indexR % 32;
