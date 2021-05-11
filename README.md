@@ -4,9 +4,9 @@ This project is about using mbed to run a RPC loop with two custom functions (op
 ## Built with:
 C++, Python
 ## Equipment
-1.PC
-2.B_L4S5I_IOT01A
-3.uLCD display
+1. PC
+2. B_L4S5I_IOT01A
+3. uLCD display
 ## Description
 This project is embedding in B_L4S5I_IOT01A, the PC/Python use RPC over serial to send a command to call gesture UI mode on mbed.Thus, the gesture UI function
 will start a thread function.
