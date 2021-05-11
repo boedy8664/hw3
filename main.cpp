@@ -425,6 +425,7 @@ void tilt(Arguments *in, Reply *out) {
   myled3 = 0;
   off = 1;
   c = 0;
+  message_num = 0;
   sw0.rise(&Confirm_angle);
   while (c == 0) {
     myled3 = !myled3;
