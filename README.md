@@ -3,7 +3,7 @@
 This project is about using mbed to run a RPC loop with two custom functions (operation modes): (1) gesture UI, and (2) tilt angle detection
 ## Built with:
 C++, Python
-##Equipment
+## Equipment
 1.PC
 2.B_L4S5I_IOT01A
 3.uLCD display
